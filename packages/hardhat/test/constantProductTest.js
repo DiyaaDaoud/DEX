@@ -93,7 +93,7 @@ describe("🚩 Challenge 3: ⚖️ 🪙 Simple DEX", function () {
           const value = ethers.utils.parseEther("1");
           const txApprove = await balloonsContract.approve(
             dexContract.address,
-            value
+            ethers.utils.parseEther("5")
           );
           await txApprove.wait(1);
           let tx1 = await dexContract.tokenToEth(value);
@@ -110,7 +110,7 @@ describe("🚩 Challenge 3: ⚖️ 🪙 Simple DEX", function () {
           const finalUserBalance = await ethers.provider.getBalance(
             deployer.address
           );
-          assert(finalUserBalance.toString() > initialUserBalance.toString());
+          assert(initialUserBalance.lt(finalUserBalance));
           assert(
             finalUserBalance.toString() <
               initialUserBalance
@@ -159,7 +159,7 @@ describe("🚩 Challenge 3: ⚖️ 🪙 Simple DEX", function () {
             .div(ethReserves);
           const txApprove = await balloonsContract.approve(
             dexContract.address,
-            ethers.utils.parseEther("10")
+            ethers.utils.parseEther("15")
           );
 
           await txApprove.wait(1);
@@ -222,6 +222,15 @@ describe("🚩 Challenge 3: ⚖️ 🪙 Simple DEX", function () {
       describe("withdraw", async () => {
         it("Should withdraw 1 ETH and 1 $BAL when pool at 1:1 ratio", async function () {
           const value = ethers.utils.parseEther("1");
+          const txApprove = await balloonsContract.approve(
+            dexContract.address,
+            ethers.utils.parseEther("10")
+          );
+          await txApprove.wait(1);
+          const txdeposit = await dexContract.deposit({
+            value: ethers.utils.parseEther("1.5"),
+          });
+          await txdeposit.wait(1);
           const tokenReserves = await balloonsContract.balanceOf(
             dexContract.address
           );
@@ -244,6 +253,7 @@ describe("🚩 Challenge 3: ⚖️ 🪙 Simple DEX", function () {
           const expectedTokentoWithdraw = value
             .mul(tokenReserves)
             .div(totalLiquidity);
+
           const txWithdraw = await dexContract.withdraw(value);
           const txWithdrawReceipt = await txWithdraw.wait(1);
           expect(txWithdraw).to.emit(dexContract, "LiquidityRemoved");
